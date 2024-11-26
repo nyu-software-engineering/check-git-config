@@ -1,11 +1,11 @@
 name: Notify on Commit or PR Merge
 
 on:
-  #   push:
-  #     branches:
-  #       - main
+  push:
+    branches:
+      - main
   pull_request:
-    types: [closed]
+    types: [closed, opened]
 
 jobs:
   notify:
