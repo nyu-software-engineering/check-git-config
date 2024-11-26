@@ -1,0 +1,65 @@
+name: Notify on Commit or PR Merge
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [closed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "14"
+
+      - name: Install dependencies
+        run: npm install -g nodemailer
+
+      - name: Determine event type
+        id: event_type
+        run: echo "::set-output name=event_type::${{ github.event_name }}"
+
+      - name: Send email notification
+        env:
+          GITHUB_EVENT: ${{ toJson(github.event) }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_USER: ${{ github.event.pusher.name || github.event.pull_request.user.login }}
+          EVENT_TYPE: ${{ steps.event_type.outputs.event_type }}
+          EMAIL: ${{ secrets.EMAIL }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        run: |
+          node -e "
+          const nodemailer = require('nodemailer');
+          const transporter = nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                  user: process.env.EMAIL,
+                  pass: process.env.EMAIL_PASSWORD
+              }
+          });
+
+          const mailOptions = {
+              from: process.env.EMAIL,
+              to: process.env.EMAIL,
+              subject: 'GitHub Event Notification',
+              text: \`Event Type: ${{ steps.event_type.outputs.event_type }}\n
+                           GitHub Event: ${{ env.GITHUB_EVENT }}\n
+                           GitHub Actor: ${{ env.GITHUB_ACTOR }}\n
+                           GitHub User: ${{ env.GITHUB_USER }}\`
+          };
+
+          transporter.sendMail(mailOptions, (error, info) => {
+              if (error) {
+                  return console.log(error);
+              }
+              console.log('Email sent: ' + info.response);
+          });
+          "
