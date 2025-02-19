@@ -1,6 +1,6 @@
 # Check Git/GitHub Config
 
-This respository is intended to be used to check a contributor's `git`/GitHub username configuration to ensure that they match. Matching usernames are necessary for ensuring a given contributor's work is tracked correctly.
+This respository is intended to be used to check a contributor's `git` & GitHub username configuration to ensure that they match. Matching usernames are necessary for ensuring a given contributor's work is tracked correctly.
 
 ## Intended use
 
