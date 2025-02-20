@@ -16,3 +16,5 @@ You will receive an automated email showing the usernames detected for the commi
 
 - commit usernames come from the `git` configuration.
 - pull request usernames come from your GitHub account and profile settings.
+
+Yup
