@@ -21,7 +21,7 @@ jobs:
           node-version: "14"
 
       - name: Install dependencies
-        run: npm install -g nodemailer
+        run: npm install nodemailer
 
       - name: Set Git Username
         run: echo "GIT_USERNAME=$(git config user.name)" >> $GITHUB_ENV  
