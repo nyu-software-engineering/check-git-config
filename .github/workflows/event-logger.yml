@@ -44,7 +44,10 @@ jobs:
         run: |
           echo $COMMITS > commits.json
           cat commits.json # debugging
+          GIT_USERNAME=$(jq -r '.[0].commit.author.name' commits.json) # Extract Git username
+          echo "Git Username: $GIT_USERNAME"
           pipenv run gitcommitlogger -r $(echo $REPOSITORY_URL) -t pull_request_merged -d $(echo $PR_CLOSED_AT) -un $(echo $GITHUB_LOGIN) -i commits.json -o commit_stats.csv -u $(echo $COMMIT_LOG_API) -v
+          echo "GIT_USERNAME=$GIT_USERNAME" >> $GITHUB_ENV  # Pass it to the next steps
       - name: Log pull request closed without merge
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
         run: |
