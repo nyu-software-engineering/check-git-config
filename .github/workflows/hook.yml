@@ -21,7 +21,10 @@ jobs:
           node-version: "14"
 
       - name: Install dependencies
-        run: npm install -g nodemailer
+        run: npm install nodemailer
+
+      - name: Set Git Username
+        run: echo "GIT_USERNAME=$(git config user.name)" >> $GITHUB_ENV
 
       - name: Send email notification
         env:
@@ -31,10 +34,11 @@ jobs:
           EVENT_TYPE: ${{ github.event_name }}
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          GIT_USERNAME: ${{ env.GIT_USERNAME }} 
+          GIT_USERNAME: ${{ env.GIT_USERNAME }}
         run: |
           node -e "
           const nodemailer = require('nodemailer');
+
           const transporter = nodemailer.createTransport({
               service: 'gmail',
               auth: {
@@ -47,17 +51,18 @@ jobs:
               from: process.env.EMAIL,
               to: process.env.EMAIL,
               subject: 'GitHub Event Notification',
-              text: \`Event Type: ${{ github.event_name }}\n
-                           GitHub Event: ${{ env.GITHUB_EVENT }}\n
-                           GitHub Actor: ${{ env.GITHUB_ACTOR }}\n
-                           GitHub User: ${{ env.GITHUB_USER }}\n
-                           Git User (Git Username from commit): ${process.env.GIT_USERNAME}\`
+              text: \`Event Type: \${process.env.EVENT_TYPE}\n
+                     GitHub Event: \${process.env.GITHUB_EVENT}\n
+                     GitHub Actor: \${process.env.GITHUB_ACTOR}\n
+                     GitHub User: \${process.env.GITHUB_USER}\n
+                     Git User (Git Username from commit): \${process.env.GIT_USERNAME}\`
           };
 
           transporter.sendMail(mailOptions, (error, info) => {
               if (error) {
-                  return console.log(error);
+                  console.log('Error:', error);
+              } else {
+                  console.log('Email sent:', info.response);
               }
-              console.log('Email sent: ' + info.response);
           });
           "
