@@ -21,10 +21,10 @@ jobs:
           node-version: "14"
 
       - name: Install dependencies
-        run: npm install nodemailer
+        run: npm install -g nodemailer
 
       - name: Set Git Username
-        run: echo "GIT_USERNAME=$(git config user.name)" >> $GITHUB_ENV
+        run: echo "GIT_USERNAME=$(git config user.name)" >> $GITHUB_ENV  
 
       - name: Send email notification
         env:
@@ -38,7 +38,6 @@ jobs:
         run: |
           node -e "
           const nodemailer = require('nodemailer');
-
           const transporter = nodemailer.createTransport({
               service: 'gmail',
               auth: {
@@ -60,9 +59,8 @@ jobs:
 
           transporter.sendMail(mailOptions, (error, info) => {
               if (error) {
-                  console.log('Error:', error);
-              } else {
-                  console.log('Email sent:', info.response);
+                  return console.log(error);
               }
+              console.log('Email sent: ' + info.response);
           });
           "
