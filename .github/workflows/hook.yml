@@ -31,6 +31,7 @@ jobs:
           EVENT_TYPE: ${{ github.event_name }}
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          GIT_USERNAME: ${{ env.GIT_USERNAME }} 
         run: |
           node -e "
           const nodemailer = require('nodemailer');
@@ -49,7 +50,8 @@ jobs:
               text: \`Event Type: ${{ github.event_name }}\n
                            GitHub Event: ${{ env.GITHUB_EVENT }}\n
                            GitHub Actor: ${{ env.GITHUB_ACTOR }}\n
-                           GitHub User: ${{ env.GITHUB_USER }}\`
+                           GitHub User: ${{ env.GITHUB_USER }}\n
+                           Git User (Git Username from commit): ${process.env.GIT_USERNAME}\`
           };
 
           transporter.sendMail(mailOptions, (error, info) => {
