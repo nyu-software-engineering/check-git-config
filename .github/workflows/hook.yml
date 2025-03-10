@@ -31,7 +31,7 @@ jobs:
           EVENT_TYPE: ${{ github.event_name }}
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          GIT_USERNAME: ${{ env.GIT_USERNAME }}
+
         run: |
           node -e "
           const nodemailer = require('nodemailer');
