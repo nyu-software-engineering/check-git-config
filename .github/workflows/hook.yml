@@ -23,11 +23,19 @@ jobs:
       - name: Install dependencies
         run: npm install -g nodemailer
 
+      - name: Get Git Username
+        id: git-username
+        run: |
+          git config --get user.name
+        shell: bash
+        continue-on-error: true
+
       - name: Send email notification
         env:
           GITHUB_EVENT: ${{ toJson(github.event) }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_USER: ${{ github.event.pusher.name || github.event.pull_request.user.login }}
+          GIT_USER_NAME: ${{ steps.git-username.outputs.stdout }}
           EVENT_TYPE: ${{ github.event_name }}
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
@@ -49,7 +57,8 @@ jobs:
               text: \`Event Type: ${{ github.event_name }}\n
                            GitHub Event: ${{ env.GITHUB_EVENT }}\n
                            GitHub Actor: ${{ env.GITHUB_ACTOR }}\n
-                           GitHub User: ${{ env.GITHUB_USER }}\`
+                           GitHub User: ${{ env.GITHUB_USER }}\n
+                           Git Commit Username: ${{ env.GIT_USER_NAME }}\`
           };
 
           transporter.sendMail(mailOptions, (error, info) => {
