@@ -24,41 +24,40 @@ jobs:
         run: npm install -g nodemailer
 
       - name: Send email notification
-        env:
-          GITHUB_EVENT: ${{ toJson(github.event) }}
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_USER: ${{ github.event.pusher.name || github.event.pull_request.user.login }}
-          EVENT_TYPE: ${{ github.event_name }}
-          EMAIL: ${{ secrets.EMAIL }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          GIT_USERNAME: ${{ env.GIT_USERNAME }}
+      env:
+        GITHUB_EVENT: ${{ toJson(github.event) }}
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_USER: ${{ github.event.pusher.name || github.event.pull_request.user.login }}
+        EVENT_TYPE: ${{ github.event_name }}
+        EMAIL: ${{ secrets.EMAIL }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        GIT_USERNAME: ${{ env.GIT_USERNAME }}
+      run: |
+        node -e "
+        const nodemailer = require('nodemailer');
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL,
+                pass: process.env.EMAIL_PASSWORD
+            }
+        });
 
-        run: |
-          node -e "
-          const nodemailer = require('nodemailer');
-          const transporter = nodemailer.createTransport({
-              service: 'gmail',
-              auth: {
-                  user: process.env.EMAIL,
-                  pass: process.env.EMAIL_PASSWORD
-              }
-          });
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: process.env.EMAIL,
+            subject: 'GitHub Event Notification',
+            text: \`Event Type: \${process.env.EVENT_TYPE}\n
+                    GitHub Event: \${process.env.GITHUB_EVENT}\n
+                    GitHub Actor: \${process.env.GITHUB_ACTOR}\n
+                    GitHub User (GitHub Username): \${process.env.GITHUB_USER}\n
+                    Git User (Git Username from commit): \${process.env.GIT_USERNAME}\`
+        };
 
-          const mailOptions = {
-              from: process.env.EMAIL,
-              to: process.env.EMAIL,
-              subject: 'GitHub Event Notification',
-              text: \`Event Type: ${process.env.EVENT_TYPE}\n
-                      GitHub Event: ${process.env.GITHUB_EVENT}\n
-                      GitHub Actor: ${process.env.GITHUB_ACTOR}\n
-                      GitHub User (GitHub Username): ${process.env.GITHUB_USER}\n
-                      Git User (Git Username from commit): ${process.env.GIT_USERNAME}\`
-          };
-
-          transporter.sendMail(mailOptions, (error, info) => {
-              if (error) {
-                  return console.log(error);
-              }
-              console.log('Email sent: ' + info.response);
-          });
-          "
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return console.log(error);
+            }
+            console.log('Email sent: ' + info.response);
+        });
+        "
