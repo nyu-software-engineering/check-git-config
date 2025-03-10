@@ -1,14 +1,15 @@
 name: log github events
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, pipfile-experiment]
   pull_request:
     types: [opened, closed]
-    branches: [main, master]
+    branches: [main, master, pipfile-experiment]
 jobs:
   log:
     runs-on: ubuntu-latest
     env:
+      PIPENV_PIPFILE: .github/workflows/Pipfile # so this script doesn't use the Pipfile in the root directory
       COMMIT_LOG_API: ${{ secrets.COMMIT_LOG_API }}
       GITHUB_LOGIN: ${{ github.actor }} # github login also available in github.triggering_actor, github.event.sender.login
       COMMITS: ${{ toJSON(github.event.commits) }}
@@ -30,11 +31,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --user pipenv
           pipenv --python $(which python)
-          pipenv install pytz
-          pipenv install python-dateutil
-          pipenv install build
-          pipenv install requests
-          pipenv install gitcommitlogger
+          pipenv install
       - name: Log pull request opened
         if: github.event_name == 'pull_request' && github.event.action == 'opened'
         run: |
@@ -44,10 +41,7 @@ jobs:
         run: |
           echo $COMMITS > commits.json
           cat commits.json # debugging
-          GIT_USERNAME=$(jq -r '.[0].commit.author.name' commits.json) # Extract Git username
-          echo "Git Username: $GIT_USERNAME"
           pipenv run gitcommitlogger -r $(echo $REPOSITORY_URL) -t pull_request_merged -d $(echo $PR_CLOSED_AT) -un $(echo $GITHUB_LOGIN) -i commits.json -o commit_stats.csv -u $(echo $COMMIT_LOG_API) -v
-          echo "GIT_USERNAME=$GIT_USERNAME" >> $GITHUB_ENV  # Pass it to the next steps
       - name: Log pull request closed without merge
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
         run: |
